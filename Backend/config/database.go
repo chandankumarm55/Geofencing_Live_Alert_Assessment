@@ -12,6 +12,7 @@ import (
 )
 
 var DB *mongo.Database
+var Client *mongo.Client
 
 func ConnectMongoDB() {
 	mongoURI := os.Getenv("MONGODB_URI")
@@ -22,12 +23,13 @@ func ConnectMongoDB() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
+	var err error
+	Client, err = mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
 	if err != nil {
 		log.Fatalf("Failed to connect to MongoDB: %v", err)
 	}
 
-	if err = client.Ping(ctx, nil); err != nil {
+	if err = Client.Ping(ctx, nil); err != nil {
 		log.Fatalf("Failed to ping MongoDB: %v", err)
 	}
 
@@ -36,8 +38,8 @@ func ConnectMongoDB() {
 		dbName = "geofencing_db"
 	}
 
-	DB = client.Database(dbName)
-	log.Println("Connected to MongoDB successfully")
+	DB = Client.Database(dbName)
+	log.Println("✅ Connected to MongoDB successfully")
 	createIndexes()
 }
 

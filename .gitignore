@@ -1,0 +1,36 @@
+# ─── Environment ───
+.env
+.env.local
+.env.production
+
+# ─── Dependencies ───
+node_modules/
+
+# ─── Build output ───
+Frontend/dist/
+Frontend/build/
+
+# ─── Go ───
+Backend/geofencing-backend
+Backend/geofencing-backend.exe
+Backend/*.exe
+Backend/*.out
+
+# ─── IDE ───
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── OS ───
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Docker ───
+mongo_data/
+
+# ─── Logs ───
+*.log
+npm-debug.log*

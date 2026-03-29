@@ -169,12 +169,12 @@ export default function VehiclesPage() {
   return (
     <div className="animate-fade-in">
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+      <div className="page-header">
         <div>
           <h1 className="page-title">Vehicles</h1>
           <p className="page-subtitle">Register and track your fleet</p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="page-header-actions">
           <button className="btn btn-secondary" onClick={load} title="Refresh"><RefreshCw size={15} /></button>
           <button className="btn btn-primary" onClick={() => setShowCreate(true)}><Plus size={15} /> Register Vehicle</button>
         </div>
@@ -188,7 +188,7 @@ export default function VehiclesPage() {
             <button onClick={() => setShowCreate(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
           </div>
           <form onSubmit={handleCreateSubmit}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div className="responsive-grid-2">
               <div>
                 <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>Vehicle Number *</label>
                 <input className="input" value={form.vehicle_number} onChange={e => setForm({ ...form, vehicle_number: e.target.value })} placeholder="KA-01-AB-1234" />
@@ -233,7 +233,7 @@ export default function VehiclesPage() {
             </button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1rem', alignItems: 'start' }}>
+          <div className="responsive-grid-map-sidebar">
             {/* Map */}
             <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border)', position: 'relative', height: 360 }}>
               {mapPickMode && (

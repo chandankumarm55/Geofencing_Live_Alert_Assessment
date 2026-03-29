@@ -109,10 +109,10 @@ export default function MapPage() {
   }
 
   return (
-    <div className="animate-fade-in" style={{ height: 'calc(100vh - 100px)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div className="animate-fade-in map-page-container" style={{ height: 'calc(100vh - 100px)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
       {/* Toolbar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+      <div className="page-header" style={{ flexShrink: 0, marginBottom: 0 }}>
         <div>
           <h1 className="page-title">Live Map</h1>
           <p className="page-subtitle">Interactive geofence and vehicle tracking</p>

@@ -87,14 +87,14 @@ export default function AlertsPage() {
   return (
     <div className="animate-fade-in">
       {/* ── Header ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+      <div className="page-header">
         <div>
           <h1 className="page-title">Alerts</h1>
           <p className="page-subtitle">Configure rules and monitor real-time events</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="page-header-actions">
           {/* Live status chip */}
-          <div style={{
+          <div className="header-chip" style={{
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '5px 12px', borderRadius: 8,
             background: connected ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
@@ -111,7 +111,7 @@ export default function AlertsPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+      <div className="responsive-grid-2-main">
 
         {/* ═══ LEFT: Alert Rules ═══ */}
         <div>

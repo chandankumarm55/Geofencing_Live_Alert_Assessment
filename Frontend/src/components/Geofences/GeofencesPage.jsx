@@ -101,7 +101,7 @@ export default function GeofencesPage() {
   return (
     <div className="animate-fade-in">
       {/* ── Header ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+      <div className="page-header">
         <div>
           <h1 className="page-title">Geofences</h1>
           <p className="page-subtitle">Manage virtual boundaries</p>
@@ -140,7 +140,7 @@ export default function GeofencesPage() {
             </button>
           </div>
           <form onSubmit={handleSubmit}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div className="responsive-grid-2">
               <div>
                 <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>Name *</label>
                 <input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Downtown Zone" />

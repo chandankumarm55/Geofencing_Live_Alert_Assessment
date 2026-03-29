@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { useState, useEffect, useCallback } from 'react'
+import { NavLink, useLocation } from 'react-router-dom'
 import { LayoutDashboard, Map, Hexagon, Truck, Bell, AlertTriangle, Menu, X, Radio, Sun, Moon } from 'lucide-react'
 import { useWSListener, useWSConnected } from '../../context/WebSocketContext'
 import { useTheme } from '../../context/ThemeContext'
@@ -21,10 +21,37 @@ const categoryColors = {
   customer_area:   '#16a34a',
 }
 
+const MOBILE_BREAKPOINT = 768
+
 export default function Layout({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= MOBILE_BREAKPOINT)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < MOBILE_BREAKPOINT)
   const connected = useWSConnected()
   const { theme, toggleTheme } = useTheme()
+  const location = useLocation()
+
+  // Track viewport size
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < MOBILE_BREAKPOINT
+      setIsMobile(mobile)
+      // Auto-close sidebar when resizing to mobile
+      if (mobile) setSidebarOpen(false)
+      // Auto-open when going to desktop
+      if (!mobile) setSidebarOpen(true)
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  // Auto-close sidebar on route change (mobile only)
+  useEffect(() => {
+    if (isMobile) setSidebarOpen(false)
+  }, [location.pathname, isMobile])
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen(prev => !prev)
+  }, [])
 
   useWSListener((alert) => {
     const color = categoryColors[alert.geofence?.category] || '#3b82f6'
@@ -40,7 +67,7 @@ export default function Layout({ children }) {
             <div style={{ width: 34, height: 34, borderRadius: 8, background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <AlertTriangle size={16} style={{ color }} />
             </div>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontWeight: 700, fontSize: '0.875rem', marginBottom: 2, color: 'var(--text-primary)' }}>
                 {isEntry ? '🚨 Geofence Entry' : '🚪 Geofence Exit'}
               </p>
@@ -66,11 +93,27 @@ export default function Layout({ children }) {
     )
   })
 
-  return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)' }}>
-
-      {/* ── Sidebar ── */}
-      <aside style={{
+  // Sidebar styles
+  const sidebarStyle = isMobile
+    ? {
+        // Mobile: fixed overlay
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        bottom: 0,
+        width: 260,
+        background: 'var(--sidebar-bg)',
+        borderRight: '1px solid var(--border)',
+        zIndex: 1100,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+        transition: 'transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
+        boxShadow: sidebarOpen ? '4px 0 24px rgba(0,0,0,0.3)' : 'none',
+      }
+    : {
+        // Desktop: inline sidebar
         width: sidebarOpen ? 228 : 56,
         background: 'var(--sidebar-bg)',
         borderRight: '1px solid var(--border)',
@@ -79,17 +122,50 @@ export default function Layout({ children }) {
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-      }}>
+      }
+
+  // Whether labels should show in sidebar
+  const showLabels = isMobile ? true : sidebarOpen
+
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)' }}>
+
+      {/* ── Mobile backdrop ── */}
+      {isMobile && sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.55)',
+            zIndex: 1050,
+            backdropFilter: 'blur(2px)',
+            transition: 'opacity 0.25s',
+          }}
+        />
+      )}
+
+      {/* ── Sidebar ── */}
+      <aside style={sidebarStyle}>
         {/* Logo */}
         <div style={{ padding: '1rem 0.75rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{ width: 34, height: 34, borderRadius: 9, background: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 3px 10px rgba(59,130,246,0.3)' }}>
             <Map size={17} color="white" />
           </div>
-          {sidebarOpen && (
-            <div>
+          {showLabels && (
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: 1.2 }}>GeoTrack</div>
               <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: 1 }}>Vehicle Tracking</div>
             </div>
+          )}
+          {/* Mobile close button */}
+          {isMobile && (
+            <button
+              onClick={() => setSidebarOpen(false)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4, marginLeft: 'auto', flexShrink: 0 }}
+            >
+              <X size={18} />
+            </button>
           )}
         </div>
 
@@ -101,10 +177,10 @@ export default function Layout({ children }) {
               to={to}
               end={to === '/'}
               className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-              title={!sidebarOpen ? label : undefined}
+              title={!showLabels ? label : undefined}
             >
               <Icon size={17} style={{ flexShrink: 0 }} />
-              {sidebarOpen && <span>{label}</span>}
+              {showLabels && <span>{label}</span>}
             </NavLink>
           ))}
         </nav>
@@ -117,7 +193,7 @@ export default function Layout({ children }) {
             boxShadow: connected ? '0 0 6px #22c55e90' : 'none',
             animation: connected ? 'pulseDot 2s infinite' : 'none',
           }} />
-          {sidebarOpen && (
+          {showLabels && (
             <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
               {connected ? 'Live Connected' : 'Reconnecting…'}
             </span>
@@ -129,18 +205,9 @@ export default function Layout({ children }) {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
 
         {/* Topbar */}
-        <header style={{
-          height: 56,
-          background: 'var(--header-bg)',
-          borderBottom: '1px solid var(--border)',
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 1rem',
-          gap: '0.75rem',
-          flexShrink: 0,
-        }}>
+        <header className="app-header">
           <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
+            onClick={toggleSidebar}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4, borderRadius: 6 }}
           >
             <Menu size={18} />
@@ -149,7 +216,7 @@ export default function Layout({ children }) {
           <div style={{ flex: 1 }} />
 
           {/* Live chip */}
-          <div style={{
+          <div className="header-chip" style={{
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '4px 10px', borderRadius: 999,
             background: connected ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
@@ -164,26 +231,16 @@ export default function Layout({ children }) {
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '5px 12px', borderRadius: 8,
-              background: 'var(--bg-tertiary)',
-              border: '1px solid var(--border)',
-              cursor: 'pointer',
-              color: 'var(--text-secondary)',
-              fontSize: '0.8rem', fontWeight: 600,
-              fontFamily: 'inherit',
-              transition: 'all 0.15s',
-            }}
+            className="theme-toggle-btn"
             title="Toggle dark/light mode"
           >
             {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
-            {theme === 'dark' ? 'Light' : 'Dark'}
+            <span className="theme-toggle-label">{theme === 'dark' ? 'Light' : 'Dark'}</span>
           </button>
         </header>
 
         {/* Page content */}
-        <main style={{ flex: 1, overflow: 'auto', padding: '1.5rem' }}>
+        <main className="app-main">
           {children}
         </main>
       </div>

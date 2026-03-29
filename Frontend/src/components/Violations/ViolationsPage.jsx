@@ -59,7 +59,7 @@ export default function ViolationsPage() {
   return (
     <div className="animate-fade-in">
       {/* ── Header ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+      <div className="page-header">
         <div>
           <h1 className="page-title">Violation History</h1>
           <p className="page-subtitle">Historical geofence entry/exit events &mdash; {totalCount} total</p>

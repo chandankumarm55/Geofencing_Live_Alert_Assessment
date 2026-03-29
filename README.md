@@ -32,7 +32,7 @@ Frontend runs at: http://localhost:5173
 
 ---
 
-## Option B: Full Docker Compose (One Command)
+## Option B: Full Docker Compose — Build Locally (One Command)
 
 ```powershell
 cd C:\Users\Chand\OneDrive\Desktop\Geofencing
@@ -42,6 +42,120 @@ docker-compose up --build
 - Frontend: http://localhost
 - Backend: http://localhost:8080
 - MongoDB: localhost:27017
+
+---
+
+## Option C: Run from Docker Hub Images (No Source Code Needed)
+
+Pull and run pre-built images directly from Docker Hub — no cloning or building required.
+
+### Docker Images
+
+| Service  | Image                                       | Description         |
+|----------|---------------------------------------------|---------------------|
+| MongoDB  | `mongo:7`                                   | Database             |
+| Backend  | `chandankumar55/geotrack-backend:latest`    | Go API server        |
+| Frontend | `chandankumar55/geotrack-frontend:latest`   | React app via Nginx  |
+
+### Method 1: Using docker-compose (Recommended)
+
+Create a `docker-compose.yml` file anywhere on your machine:
+
+```yaml
+version: '3.9'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: geo_mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - geonet
+
+  backend:
+    image: chandankumar55/geotrack-backend:latest
+    container_name: geo_backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017
+      - DB_NAME=geofencing_db
+      - PORT=8080
+    depends_on:
+      - mongodb
+    networks:
+      - geonet
+
+  frontend:
+    image: chandankumar55/geotrack-frontend:latest
+    container_name: geo_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - geonet
+
+volumes:
+  mongo_data:
+
+networks:
+  geonet:
+    driver: bridge
+```
+
+Then run:
+
+```powershell
+docker-compose up -d
+```
+
+### Method 2: Using individual docker run commands
+
+```powershell
+# Step 1 — Pull all images
+docker pull mongo:7
+docker pull chandankumar55/geotrack-backend:latest
+docker pull chandankumar55/geotrack-frontend:latest
+
+# Step 2 — Create a network
+docker network create geonet
+
+# Step 3 — Start MongoDB
+docker run -d --name geo_mongodb --network geonet -p 27017:27017 -v mongo_data:/data/db mongo:7
+
+# Step 4 — Start Backend
+docker run -d --name geo_backend --network geonet -p 8080:8080 -e MONGODB_URI=mongodb://geo_mongodb:27017 -e DB_NAME=geofencing_db -e PORT=8080 chandankumar55/geotrack-backend:latest
+
+# Step 5 — Start Frontend
+docker run -d --name geo_frontend --network geonet -p 80:80 chandankumar55/geotrack-frontend:latest
+```
+
+### Access the Application
+
+| Service   | URL                        |
+|-----------|----------------------------|
+| Frontend  | http://localhost            |
+| Backend   | http://localhost:8080       |
+| Health    | http://localhost:8080/health|
+
+### Stop & Clean Up
+
+```powershell
+# Stop all containers
+docker-compose down
+
+# Or if using individual containers
+docker stop geo_frontend geo_backend geo_mongodb
+docker rm geo_frontend geo_backend geo_mongodb
+docker network rm geonet
+```
 
 ---
 
